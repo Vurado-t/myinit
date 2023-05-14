@@ -6,12 +6,14 @@
 #define MYINIT_LOG_H
 
 
-void init_stdout_log(FILE* stream, Error* error_buffer);
+void init_std_log(FILE* stream, Error* error_buffer);
 
 void log_error(Error error);
 
 void log_error_msg(char* msg);
 
 void log_config(const InitConfig* init_config);
+
+void log_info_msg(const char* msg);
 
 #endif

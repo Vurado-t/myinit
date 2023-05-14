@@ -16,11 +16,18 @@ typedef struct {
 typedef struct {
     long process_count;
     ProcessConfig* process_configs;
+    char* source_file_path;
 } InitConfig;
 
 InitConfig* parse_config_file(FILE* file, Error* error);
 
 void free_config(InitConfig* init_config);
+
+bool is_valid_config(InitConfig* init_config, Error* error);
+
+InitConfig* load_config(const char* source_path, Error* error);
+
+InitConfig* try_reload_config(InitConfig* init_config, Error* error);
 
 
 #endif

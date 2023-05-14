@@ -10,8 +10,16 @@ void init_std_log(FILE* file, Error* error_buffer) {
     dup2(log_fd, 2);
 }
 
+void log_info_msg(const char* msg) {
+    printf("[INFO] %s\n", msg);
+    fflush(stdout);
+    fflush(stderr);
+}
+
 void log_error(Error error) {
-    fprintf(stderr, "%s [%d]\n", error.message, error.code);
+    fprintf(stderr, "[ERROR] [%d] %s\n", error.code, error.message);
+    fflush(stdout);
+    fflush(stderr);
 }
 
 void log_error_msg(char* msg) {
@@ -25,13 +33,21 @@ void log_process_config(char* message_before, const ProcessConfig* process_confi
 
     printf(" [%s]", process_config->stdin_file);
     printf(" [%s]", process_config->stdout_file);
+
+    fflush(stdout);
+    fflush(stderr);
 }
 
 void log_config(const InitConfig* init_config) {
-    printf("[Config (processes: %lu)]:\n", init_config->process_count);
+    printf("[Config (Process Count: %lu; Source File: %s)]:\n",
+           init_config->process_count,
+           init_config->source_file_path);
 
     for (int i = 0; i < init_config->process_count; i++) {
         log_process_config("    ", &init_config->process_configs[i]);
         printf("\n");
     }
+
+    fflush(stdout);
+    fflush(stderr);
 }

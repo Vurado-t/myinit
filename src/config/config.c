@@ -1,7 +1,9 @@
 #include <malloc.h>
 #include <errno.h>
 #include <string.h>
+#include <stdlib.h>
 #include "config.h"
+#include "../file/utils.h"
 
 #define MAX_LEXEME_IN_ROW_COUNT 100
 
@@ -30,17 +32,6 @@ char* get_string_from_lexeme(const Lexeme* lexeme) {
     buffer[buffer_length - 1] = '\0';
 
     return strncpy(buffer, lexeme->str + begin, buffer_length - 1);
-}
-
-long get_file_size(FILE* file) {
-    long old_position = ftell(file);
-
-    fseek(file, 0, SEEK_END);
-    long result = ftell(file);
-
-    fseek(file, old_position, SEEK_SET);
-
-    return result;
 }
 
 long count_not_empty_rows(const char* buffer, long buffer_length) {
@@ -158,25 +149,6 @@ ParsedRow* get_lexemes(char* text, long text_buffer_length, long row_count, long
     return parsed_rows;
 }
 
-char* read_file(FILE* file, long* output_buffer_length, Error* error) {
-    long text_buffer_length = get_file_size(file) + 1;
-    *output_buffer_length  = text_buffer_length;
-
-    char* text = (char*)malloc(text_buffer_length);
-
-    fread(text, 1, text_buffer_length, file);
-    if (ferror(file)) {
-        *error = get_error_from_errno(errno);
-        free(text);
-
-        return NULL;
-    }
-
-    text[text_buffer_length - 1] = '\0';
-
-    return text;
-}
-
 ProcessConfig get_process_config(ParsedRow parsed_row, Error* error) {
     INIT_ERROR(error);
 
@@ -250,6 +222,74 @@ void free_config(InitConfig* init_config) {
         free(process_config->stdout_file);
     }
 
+    free(init_config->source_file_path);
     free(init_config->process_configs);
     free(init_config);
+}
+
+bool is_valid_config(InitConfig* init_config, Error* error) {
+    INIT_ERROR(error);
+
+    for (int i = 0; i < init_config->process_count; i++) {
+        const ProcessConfig* process_config = &init_config->process_configs[i];
+
+        if (!is_abs_path(process_config->exe_path))
+            *error = get_error_from_message("Executable path must be absolute");
+
+        if (!is_abs_path(process_config->stdin_file))
+            *error = get_error_from_message("Stdin path must be absolute");
+
+        if (!is_abs_path(process_config->stdout_file))
+            *error = get_error_from_message("Stdout path must be absolute");
+
+        if (error->has_error)
+            return false;
+    }
+
+    return true;
+}
+
+InitConfig* load_config(const char* source_path, Error* error) {
+    FILE* file = fopen(source_path, "r");
+    if (file == NULL) {
+        *error = get_error_from_errno(errno);
+        return NULL;
+    }
+
+    InitConfig* config = parse_config_file(file, error);
+
+    config->source_file_path = realpath(source_path, malloc(sizeof(char) * (FILENAME_MAX + 1)));
+    if (error->has_error) {
+        if (fclose(file) != 0)
+            *error = get_error_from_errno(errno);
+
+        return NULL;
+    }
+
+    if (!is_valid_config(config, error)) {
+        if (fclose(file) != 0)
+            *error = get_error_from_errno(errno);
+
+        free_config(config);
+
+        return NULL;
+    }
+
+    return config;
+}
+
+/*
+ * [Description]
+ *     free init_config and returns new config if there is no error, otherwise returns init_config
+ * */
+InitConfig* try_reload_config(InitConfig* init_config, Error* error) {
+    INIT_ERROR(error);
+
+    InitConfig* new_config = load_config(init_config->source_file_path, error);
+    if (error->has_error)
+        return init_config;
+
+    free_config(init_config);
+
+    return new_config;
 }

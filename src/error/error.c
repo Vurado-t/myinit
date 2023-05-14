@@ -16,6 +16,7 @@ Error get_error_from_message(const char* message) {
     Error error;
     INIT_ERROR(&error);
 
+    error.has_error = true;
     error.code = 1;
     error.message = message;
 
