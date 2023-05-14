@@ -14,6 +14,6 @@ void log_error_msg(char* msg);
 
 void log_config(const InitConfig* init_config);
 
-void log_info_msg(const char* msg);
+void log_info_msg(const char* fmt, ...);
 
 #endif

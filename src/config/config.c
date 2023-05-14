@@ -258,7 +258,11 @@ InitConfig* load_config(const char* source_path, Error* error) {
 
     InitConfig* config = parse_config_file(file, error);
 
-    config->source_file_path = realpath(source_path, malloc(sizeof(char) * (FILENAME_MAX + 1)));
+    if (is_abs_path(source_path))
+        config->source_file_path = strcpy(malloc(sizeof(char) * (FILENAME_MAX + 1)), source_path);
+    else
+        config->source_file_path = realpath(source_path, malloc(sizeof(char) * (FILENAME_MAX + 1)));
+
     if (error->has_error) {
         if (fclose(file) != 0)
             *error = get_error_from_errno(errno);

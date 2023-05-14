@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include "log.h"
 
 void init_std_log(FILE* file, Error* error_buffer) {
@@ -10,8 +11,18 @@ void init_std_log(FILE* file, Error* error_buffer) {
     dup2(log_fd, 2);
 }
 
-void log_info_msg(const char* msg) {
-    printf("[INFO] %s\n", msg);
+void log_info_msg(const char* fmt, ...) {
+    printf("[INFO] ");
+
+    va_list params;
+    va_start(params, fmt);
+
+    vprintf(fmt, params);
+
+    va_end(params);
+
+    printf("\n");
+
     fflush(stdout);
     fflush(stderr);
 }
@@ -39,7 +50,7 @@ void log_process_config(char* message_before, const ProcessConfig* process_confi
 }
 
 void log_config(const InitConfig* init_config) {
-    printf("[Config (Process Count: %lu; Source File: %s)]:\n",
+    printf("[INFO] [Config (Process Count: %lu; Source File: %s)]:\n",
            init_config->process_count,
            init_config->source_file_path);
 
