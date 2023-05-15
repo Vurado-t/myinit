@@ -1,5 +1,5 @@
 BUILDDIR := ../out
-EXEPATH := "$(BUILDDIR)/myinit"
+EXEPATH := "$(BUILDDIR)/myinitd"
 
 .SILENT: all build
 

@@ -105,7 +105,7 @@ void watch(ProcessManager* manager) {
 
                 restart_by_index(i, pids, manager->init_config);
 
-                sleep(2);
+                sleep(1);
 
                 log_info_msg("Restarted number %d with new pid %d: %s",
                              i,
