@@ -36,13 +36,9 @@ pid_t fork_and_exec(const ProcessConfig* process_config) {
             char* exec_argv[process_config->argc + 2];
             exec_argv[0] = process_config->exe_path;
             for (size_t i = 1; i < process_config->argc + 1; i++)
-                exec_argv[i] = process_config->argv[i];
+                exec_argv[i] = process_config->argv[i - 1];
 
             exec_argv[process_config->argc + 1] = NULL;
-
-            for (size_t i = 0; i < process_config->argc + 2; i++) {
-                printf(" %s", exec_argv[i]);
-            }
 
             execv(process_config->exe_path, exec_argv);
 
