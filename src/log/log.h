@@ -12,6 +12,8 @@ void log_error(Error error);
 
 void log_error_msg(char* msg);
 
+void log_process_config(char* message_before, const ProcessConfig* process_config);
+
 void log_config(const InitConfig* init_config);
 
 void log_info_msg(const char* fmt, ...);

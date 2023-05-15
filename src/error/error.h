@@ -17,7 +17,7 @@ struct Error {
 
 Error get_error_from_errno(int errno_value);
 
-Error get_error_from_message(const char* message);
+Error get_error_from_message(const char* message, ...);
 
 
 #endif

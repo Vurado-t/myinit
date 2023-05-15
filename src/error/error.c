@@ -12,7 +12,7 @@ Error get_error_from_errno(int errno_value) {
     return error;
 }
 
-Error get_error_from_message(const char* message) {
+Error get_error_from_message(const char* message, ...) {
     Error error;
     INIT_ERROR(&error);
 

@@ -13,5 +13,4 @@ build:
 		./process_manager/process_manager.c \
 		./config/config.c \
 		./file/utils.c \
-		./signals/signal_handlers.c \
 		-o $(EXEPATH) -std=gnu11

@@ -2,8 +2,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "log/log.h"
 #include "file/utils.h"
+#include "process_manager/process_manager.h"
+
+ProcessManager manager;
 
 void init_log() {
     Error error;
@@ -38,6 +42,27 @@ void detach_terminal() {
 
     if (setsid() < 0)
         exit(errno);
+
+    log_info_msg("Daemon started with pid: %d", getpid());
+}
+
+void handle_signals(int signum) {
+    switch (signum) {
+        case SIGHUP:
+            manager.is_running = false;
+            break;
+        default:
+            break;
+    }
+}
+
+void config_signal_handling() {
+    struct sigaction action;
+    action.sa_handler = handle_signals;
+    sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
+
+    sigaction(SIGHUP, &action, NULL);
 }
 
 int main(int argc, char** argv) {
@@ -62,6 +87,7 @@ int main(int argc, char** argv) {
     close_all_files();
     init_log();
     detach_terminal();
+    config_signal_handling();
 
     Error error;
 
@@ -71,20 +97,19 @@ int main(int argc, char** argv) {
         return error.code;
     }
 
-    log_config(config);
-
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
     while (true) {
-        config = try_reload_config(config, &error);
-        if (error.has_error){
-            log_error(error);
-            continue;
-        }
-
+        log_info_msg("Starting myinit");
         log_config(config);
 
-        sleep(2);
+        manager = (ProcessManager){.init_config = config, .is_running = false};
+
+        watch(&manager);
+
+        config = try_reload_config(config, &error);
+        if (error.has_error)
+            log_error(error);
     }
-
-
-    return 0;
+#pragma clang diagnostic pop
 }
