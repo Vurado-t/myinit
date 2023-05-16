@@ -1,6 +1,6 @@
 #!/bin/bash
 
-make -C /home/vurado/Desktop/os-unix/myinit/src;
+make -C ./src;
 
 BASE_DIR=/tmp/vurado/myinit;
 BASE_TESTS_DIR=$BASE_DIR/tests;
